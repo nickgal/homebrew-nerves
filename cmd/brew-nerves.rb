@@ -1,6 +1,3 @@
-require 'pry'
-
-
 class MixFile
   include Utils::Inreplace
 

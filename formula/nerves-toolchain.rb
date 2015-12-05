@@ -1,6 +1,3 @@
-require 'pry'
-
-
 class NervesToolchain < Formula
   desc "Configuration and scripts to build the cross-compilers used by Nerves"
   homepage "https://github.com/nerves-project/nerves-toolchain"
