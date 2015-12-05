@@ -26,7 +26,6 @@ end
 
 module Nerves
   class << self
-    @tap = "kfatehi/nerves"
 
     attr_accessor :name, :platform
 
@@ -73,7 +72,8 @@ module Nerves
     end
 
     def init_project()
-      exit(1) unless system "brew install elixir fwup squashfs #{@tap}/nerves-toolchain #{@tap}/nerves-system-#{platform}"
+      tap = "kfatehi/nerves"
+      exit(1) unless system "brew install elixir fwup squashfs #{tap}/nerves-toolchain #{tap}/nerves-system-#{platform}"
       exit(1) unless system "mix new #{name}"
       add_file "nerves-env.sh", content: gen_env_script()
       add_file "Makefile", content: gen_makefile()
