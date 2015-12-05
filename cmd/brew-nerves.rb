@@ -36,8 +36,8 @@ module Nerves
 
           Platforms:
             bbb                      # Beaglebone Black
-            rpi-elixir               # Raspberry Pi
-            rpi2-elixir              # Raspberry Pi 2
+            rpi                      # Original Raspberry Pi
+            rpi2                     # Raspberry Pi 2
       EOS
     end
 
@@ -107,9 +107,9 @@ module Nerves
         when "bbb"
           init_project
         when "rpi"
-          print_and_exit "not implemented yet"
-        when "rpi2-elixir"
-          print_and_exit "not implemented yet"
+          init_project
+        when "rpi2"
+          init_project
         else
           print_and_exit help
         end
