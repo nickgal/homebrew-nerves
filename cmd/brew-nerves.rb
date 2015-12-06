@@ -76,7 +76,7 @@ module Nerves
     end
 
     def cli
-      tap = "kfatehi/nerves"
+      tap = "nerves-project/nerves"
       action = ARGV[0]
       print_and_exit help if %w[help -h -help --help].include? action
 
