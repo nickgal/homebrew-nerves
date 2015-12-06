@@ -1,38 +1,11 @@
-class MixFile
-  include Utils::Inreplace
-
-  def initialize(path)
-    @path = path
-  end
-
-  ##
-  # Update the deps function in mix.esx
-  # There must already be a standard deps function that
-  # takes no arguments and returns a literal elixir list
-  #
-  # Usage:
-  # mix.deps [
-  #   %({:exrm, "~> 0.19.9"}),
-  #   %({:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"})
-  # ]    
-  def deps new_deps
-    deps_str = "\n      "+new_deps.join("\n      ")
-    func_str = %{defp deps do\n    [#{deps_str}\n    ]\n  end}
-    pattern = /defp deps do\n\s+\[.*\]\n\s+end/
-    inreplace @path, pattern, func_str
-    puts "Current Mix dependencies:\n\n  #{new_deps.join("\n  ")}\n\n"
-  end
-end
+require_relative '../lib/mix'
 
 module Nerves
   class << self
-
-    attr_accessor :name, :platform
-    @@platforms = ["bbb", "rpi", "rpi2"]
-
-    def platform=(platform)
-      if @@platforms.include? platform
-        @platform = platform
+    def validate_platform(platform)
+      platforms = ["bbb", "rpi", "rpi2"]
+      if platforms.include? platform
+        platform
       else
         print_and_exit help
       end
@@ -56,7 +29,7 @@ module Nerves
       exit
     end
 
-    def gen_env_script
+    def gen_env_script platform
       <<-EOS.undent
           export NERVES_TOOLCHAIN=/usr/local/opt/nerves-toolchain
           source /usr/local/opt/nerves-system-#{platform}/nerves-env.sh
@@ -73,39 +46,20 @@ module Nerves
       EOS
     end
 
-    def add_file path, opts
-      File.write(project_path(path), opts[:content])
+    def project_path project_name
+      File.join(Dir.pwd, project_name)
     end
 
-    def project_path path
-      File.join(Dir.pwd, name, path)
-    end
-
-    def get_reqs
-      tap = "kfatehi/nerves"
+    def get_reqs tap, platform
       exit(1) unless system "brew install fwup squashfs #{tap}/nerves-toolchain #{tap}/nerves-system-#{platform}"
     end
 
-    def toolchain
-      @toolchain ||= `brew --prefix nerves-toolchain`.strip
-    end
-
-    def toolchain_env
-      {"PATH"=>"#{ENV['PATH']}:#{toolchain}"}
-    end
-
-    def toolchain_system cmd
-      system(toolchain_env, cmd)
-    end
-
-    def init_project()
-      get_reqs
-      exit(1) unless toolchain_system "mix new #{name}"
-      add_file "nerves-env.sh", content: gen_env_script()
-      add_file "Makefile", content: gen_makefile()
-
-      mix = MixFile.new(project_path("mix.exs"))
-      mix.deps [
+    def init_project platform, name
+      exit(1) unless Mix::CLI.run("new #{name}")
+      project = Mix::Project.new(project_path(name))
+      project.write_file "nerves-env.sh", gen_env_script(platform)
+      project.write_file "Makefile", gen_makefile
+      project.change_deps [
         %({:exrm, "~> 0.19.9"}),
       ]    
 
@@ -122,17 +76,19 @@ module Nerves
     end
 
     def cli
+      tap = "kfatehi/nerves"
       action = ARGV[0]
       print_and_exit help if %w[help -h -help --help].include? action
 
       case action
       when "get"
-        self.platform = ARGV[1]
-        get_reqs
+        platform = validate_platform(ARGV[1])
+        get_reqs tap, platform
       when "new"
-        self.platform = ARGV[1]
-        self.name = ARGV[2]
-        init_project
+        platform = validate_platform(ARGV[1])
+        name = ARGV[2]
+        get_reqs tap, platform
+        init_project platform, name
       else
         print_and_exit help
       end
