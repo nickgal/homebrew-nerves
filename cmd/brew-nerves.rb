@@ -16,11 +16,11 @@ class MixFile
   #   %({:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"})
   # ]    
   def deps new_deps
-    puts "Setting project dependencies in mix.exs:\n\n  #{new_deps.join("\n  ")}\n\n"
     deps_str = "\n      "+new_deps.join("\n      ")
     func_str = %{defp deps do\n    [#{deps_str}\n    ]\n  end}
     pattern = /defp deps do\n\s+\[.*\]\n\s+end/
     inreplace @path, pattern, func_str
+    puts "Current Mix dependencies:\n\n  #{new_deps.join("\n  ")}\n\n"
   end
 end
 
@@ -28,16 +28,26 @@ module Nerves
   class << self
 
     attr_accessor :name, :platform
+    @@platforms = ["bbb", "rpi", "rpi2"]
+
+    def platform=(platform)
+      if @@platforms.include? platform
+        @platform = platform
+      else
+        print_and_exit help
+      end
+    end
 
     def help
       <<-EOS.undent
           Usage:
-            brew nerves new PLATFORM PATH  # Create nerves project targeting PLATFORM
+            brew nerves get PLATFORM       # Install requirements for Nerves development with given PLATFORM
+            brew nerves new PLATFORM PATH  # Create a new Nerves project targeting given PLATFORM
 
           Platforms:
-            bbb                      # Beaglebone Black
-            rpi                      # Original Raspberry Pi
-            rpi2                     # Raspberry Pi 2
+            bbb                            # Beaglebone Black
+            rpi                            # Original Raspberry Pi
+            rpi2                           # Raspberry Pi 2
       EOS
     end
 
@@ -71,10 +81,26 @@ module Nerves
       File.join(Dir.pwd, name, path)
     end
 
-    def init_project()
+    def get_reqs
       tap = "kfatehi/nerves"
-      exit(1) unless system "brew install elixir fwup squashfs #{tap}/nerves-toolchain #{tap}/nerves-system-#{platform}"
-      exit(1) unless system "mix new #{name}"
+      exit(1) unless system "brew install fwup squashfs #{tap}/nerves-toolchain #{tap}/nerves-system-#{platform}"
+    end
+
+    def toolchain
+      @toolchain ||= `brew --prefix nerves-toolchain`.strip
+    end
+
+    def toolchain_env
+      {"PATH"=>"#{ENV['PATH']}:#{toolchain}"}
+    end
+
+    def toolchain_system cmd
+      system(toolchain_env, cmd)
+    end
+
+    def init_project()
+      get_reqs
+      exit(1) unless toolchain_system "mix new #{name}"
       add_file "nerves-env.sh", content: gen_env_script()
       add_file "Makefile", content: gen_makefile()
 
@@ -100,19 +126,13 @@ module Nerves
       print_and_exit help if %w[help -h -help --help].include? action
 
       case action
+      when "get"
+        self.platform = ARGV[1]
+        get_reqs
       when "new"
         self.platform = ARGV[1]
         self.name = ARGV[2]
-        case self.platform
-        when "bbb"
-          init_project
-        when "rpi"
-          init_project
-        when "rpi2"
-          init_project
-        else
-          print_and_exit help
-        end
+        init_project
       else
         print_and_exit help
       end
