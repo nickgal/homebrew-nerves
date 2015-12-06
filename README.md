@@ -5,7 +5,7 @@ This tap contains a formulae related to Nerves as well as a command line interfa
 Install
 
     # Add the tap to homebrew
-    brew tap nerves-project/homebrew-nerves
+    brew tap nerves-project/nerves
 
     # View help
     brew nerves --help
