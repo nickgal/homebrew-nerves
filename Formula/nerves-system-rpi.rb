@@ -2,9 +2,9 @@ class NervesSystemRpi < Formula
   desc "Nerves SDK compiled for the original Raspberry Pi"
   homepage "https://github.com/nerves-project/nerves-sdk"
 
-  url "https://s3.amazonaws.com/nerves-project/fatehitech/nerves-sdk/9/9.2/system.tar.gz"
-  sha256 "a2196d6427172ef94e9d7192b42d6cfc6c27a771cde8ea83ac0b32cc5870474d"
-  version "0.3.0-dev"
+  url "https://nerves-releases.s3.amazonaws.com/nerves-sdk/nerves-system-nerves_rpi_elixir-master.tar.gz"
+  sha256 "7e1adfb4bea8712f657ac73c72728f85066697e6d3bce163aaaf5027a1a1eec7"
+  version "master"
 
   keg_only "Can conflict with host system, so don't symlink"
 
