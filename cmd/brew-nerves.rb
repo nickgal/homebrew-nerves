@@ -14,8 +14,9 @@ module Nerves
     def help
       <<-EOS.undent
           Usage:
-            brew nerves get PLATFORM       # Install requirements for Nerves development with given PLATFORM
-            brew nerves new PLATFORM PATH  # Create a new Nerves project targeting given PLATFORM
+            brew nerves get PLATFORM         # Install requirements for Nerves development with given PLATFORM
+            brew nerves new PLATFORM PATH    # Create a new Nerves project at PATH set to target PLATFORM
+            brew nerves set PLATFORM         # Set existing project in current directory to target PLATFORM
 
           Platforms:
             bbb                            # Beaglebone Black
@@ -93,7 +94,7 @@ module Nerves
         name = ARGV[2]
         get_reqs tap, platform
         init_project platform, name
-      when "set-platform"
+      when "set"
         platform = validate_platform(ARGV[1])
         get_reqs tap, platform
         exit(1) unless Mix::CLI.run(toolchain_dir(platform), "clean")
