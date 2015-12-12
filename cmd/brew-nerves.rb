@@ -31,7 +31,7 @@ module Nerves
 
     def gen_env_script platform
       <<-EOS.undent
-          export NERVES_TOOLCHAIN=/usr/local/opt/nerves-toolchain
+          export NERVES_TOOLCHAIN=/usr/local/opt/nerves-toolchain-#{toolchain_for(platform)}
           source /usr/local/opt/nerves-system-#{platform}/nerves-env.sh
       EOS
     end
@@ -51,11 +51,11 @@ module Nerves
     end
 
     def get_reqs tap, platform
-      exit(1) unless system "brew install fwup squashfs #{tap}/nerves-toolchain #{tap}/nerves-system-#{platform}"
+      exit(1) unless system "brew install fwup squashfs #{tap}/nerves-toolchain-#{toolchain_for(platform)} #{tap}/nerves-system-#{platform}"
     end
 
     def init_project platform, name
-      exit(1) unless Mix::CLI.run("new #{name}")
+      exit(1) unless Mix::CLI.run(toolchain_dir(platform), "new #{name}")
       project = Mix::Project.new(project_path(name))
       project.write_file "nerves-env.sh", gen_env_script(platform)
       project.write_file "Makefile", gen_makefile
@@ -75,6 +75,10 @@ module Nerves
       EOS
     end
 
+    def toolchain_dir platform
+      @toolchain_dir ||= `brew --prefix nerves-toolchain-#{toolchain_for(platform)}`.strip
+    end
+
     def cli
       tap = "nerves-project/nerves"
       action = ARGV[0]
@@ -89,8 +93,27 @@ module Nerves
         name = ARGV[2]
         get_reqs tap, platform
         init_project platform, name
+      when "set-platform"
+        platform = validate_platform(ARGV[1])
+        get_reqs tap, platform
+        exit(1) unless Mix::CLI.run(toolchain_dir(platform), "clean")
+        project = Mix::Project.new(Dir.pwd)
+        project.write_file "nerves-env.sh", gen_env_script(platform)
+        puts "Wrote nerves-env.sh"
+        project.write_file "Makefile", gen_makefile
+        puts "Wrote Makefile"
       else
         print_and_exit help
+      end
+    end
+
+    private
+
+    def toolchain_for platform
+      if platform == "rpi"
+        "armv6-rpi"
+      else
+        "arm-unknown"
       end
     end
   end

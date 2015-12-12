@@ -1,8 +1,11 @@
 module Mix
   module CLI
     class << self
-      def run cmd
-        toolchain_system("#{toolchain}/bin/mix #{cmd}")
+      attr_accessor :toolchain_dir
+
+      def run toolchain_dir, cmd
+        @toolchain_dir = toolchain_dir
+        toolchain_system("#{toolchain_dir}/bin/mix #{cmd}")
       end
 
       private
@@ -11,12 +14,9 @@ module Mix
       end
 
       def toolchain_env
-        {"PATH"=>"#{toolchain}/bin:#{ENV['PATH']}"}
+        {"PATH"=>"#{toolchain_dir}/bin:#{ENV['PATH']}"}
       end
 
-      def toolchain
-        @toolchain ||= `brew --prefix nerves-toolchain`.strip
-      end
     end
   end
 
