@@ -11,9 +11,9 @@ Install
     brew nerves --help
 
     Usage:
-
-      brew nerves get PLATFORM       # Install requirements for Nerves development with given PLATFORM
-      brew nerves new PLATFORM PATH  # Create a new Nerves project targeting given PLATFORM
+      brew nerves get PLATFORM         # Install requirements for Nerves development with given PLATFORM
+      brew nerves new PLATFORM PATH    # Create a new Nerves project at PATH set to target PLATFORM
+      brew nerves set PLATFORM         # Set existing project in current directory to target PLATFORM
 
     Platforms:
       bbb                            # Beaglebone Black
