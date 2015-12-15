@@ -62,7 +62,7 @@ module Nerves
       project.write_file "Makefile", gen_makefile
       project.change_deps [
         %({:exrm, "~> 0.19.9"}),
-      ]    
+      ]
 
       puts <<-EOS.undent
         Your Nerves project was created successfully.
@@ -100,9 +100,7 @@ module Nerves
         exit(1) unless Mix::CLI.run(toolchain_dir(platform), "clean")
         project = Mix::Project.new(Dir.pwd)
         project.write_file "nerves-env.sh", gen_env_script(platform)
-        puts "Wrote nerves-env.sh"
         project.write_file "Makefile", gen_makefile
-        puts "Wrote Makefile"
       else
         print_and_exit help
       end

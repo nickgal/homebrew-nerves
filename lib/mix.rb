@@ -30,7 +30,27 @@ module Mix
     ##
     # Write a file somewhere in the project.
     def write_file path, content
-      File.write(File.join(@root_path, path), content)
+      full_path = File.join(@root_path, path)
+      write = File.exist?(full_path) ? prompt_overwrite(path) : true
+      if write
+        bytes = File.write(full_path, content)
+        oh1 "Wrote #{path}" if bytes
+      end
+    end
+
+    ##
+    # Prompt for overwriting a file.
+    def prompt_overwrite path
+      opoo "#{path} already exists"
+      print "Overwrite? [Yn]: "
+      case $stdin.gets.chomp
+      when "Y", "y", ""
+        true
+      when "N", "n"
+        false
+      else
+        prompt_overwrite path
+      end
     end
 
     ##
@@ -42,7 +62,7 @@ module Mix
     # mix.change_deps [
     #   %({:exrm, "~> 0.19.9"}),
     #   %({:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"})
-    # ]    
+    # ]
     def change_deps new_deps
       deps_str = "\n      "+new_deps.join("\n      ")
       func_str = %{defp deps do\n    [#{deps_str}\n    ]\n  end}
